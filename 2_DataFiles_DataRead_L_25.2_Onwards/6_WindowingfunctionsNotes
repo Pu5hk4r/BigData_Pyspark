@@ -1,0 +1,63 @@
+In PySpark, the windowing functions are used for performing operations that involve a group of rows related to the current row, often referred to as "windowed"
+operations. These functions allow you to perform tasks such as calculating running totals, ranking, and aggregations over a specific window of data.
+The windowing concept is useful in many scenarios where you need to look at the data within a defined "window" rather than across the entire dataset.
+Here are the key operations for which windowing functions are typically used:
+
+1. Ranking
+You can rank rows within a window, such as assigning ranks to rows within a partition (e.g., grouping data by a certain column).
+
+from pyspark.sql import Window
+from pyspark.sql.functions import rank
+
+window_spec = Window.partitionBy("department").orderBy("salary")
+df.withColumn("rank", rank().over(window_spec)).show()
+
+Here, the employees are ranked based on their salary within their department.
+2. Aggregations (like Running Totals, Moving Averages)
+Window functions are used to calculate running sums, moving averages, or cumulative counts for the data.
+Example:
+from pyspark.sql.functions import sum
+
+window_spec = Window.partitionBy("department").orderBy("date").rowsBetween(Window.unboundedPreceding, Window.currentRow)
+df.withColumn("running_total", sum("sales").over(window_spec)).show()
+his calculates the running total of sales for each department.
+
+3. Lag/Lead Operations
+You can access the previous or next row in the data using lag() or lead() functions.
+Example:
+
+from pyspark.sql.functions import lag
+
+window_spec = Window.partitionBy("department").orderBy("date")
+df.withColumn("previous_sales", lag("sales", 1).over(window_spec)).show()
+
+This adds a new column showing the sales from the previous row within the same department.
+
+4. Row Numbering
+You can assign a unique row number to each row within a partition.
+Example
+from pyspark.sql.functions import row_number
+
+window_spec = Window.partitionBy("department").orderBy("salary")
+df.withColumn("row_number", row_number().over(window_spec)).show()
+
+This assigns a row number to each employee based on their salary within each department.
+
+
+
+
+
+5. Cumulative Sum
+You can calculate a cumulative sum, such as summing values up to the current row.
+Example:
+from pyspark.sql.functions import sum
+
+window_spec = Window.orderBy("date").rowsBetween(Window.unboundedPreceding, Window.currentRow)
+df.withColumn("cumulative_sum", sum("value").over(window_spec)).show()
+
+Key Concepts:
+•	Window Specification (WindowSpec): Defines the window over which a function operates. It includes:
+o	Partitioning: Grouping the data into partitions (similar to SQL's GROUP BY).
+o	Ordering: Sorting the data within each partition.
+o	Frame: Defines the rows within the partition to consider (e.g., from the start of the partition to the current row).
+
